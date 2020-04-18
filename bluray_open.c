@@ -16,10 +16,13 @@ int bluray_info_init(struct bluray *bd, struct bluray_info *bluray_info) {
 
 	// Set Blu-ray disc name
 	memset(bluray_info->disc_name, '\0', BLURAY_INFO_DISC_NAME_STRLEN);
+	memset(bluray_info->escaped_disc_name, '\0', BLURAY_INFO_ESCAPED_DISC_NAME_STRLEN);
 	const struct meta_dl *bd_meta = NULL;
 	bd_meta = bd_get_meta(bd);
-	if(bd_meta != NULL)
+	if(bd_meta != NULL) {
 		strncpy(bluray_info->disc_name, bd_meta->di_name, BLURAY_INFO_DISC_NAME_STRLEN - 1);
+		escaped_strncpy(bluray_info->escaped_disc_name, bd_meta->di_name, BLURAY_INFO_DISC_NAME_STRLEN - 1);
+	}
 
 	// Use the UDF volume name as disc title; will only work if input file
 	// is an image or disc.
@@ -141,4 +144,25 @@ int bluray_title_init(struct bluray *bd, struct bluray_title *bluray_title, uint
 
 	return 0;
 
+}
+
+char *escaped_strncpy(char *dest, const char *src, size_t n){
+	int i = 0, j = 0;
+	char c;
+	while(i<n && j<n && (c=src[i++])!='\0'){
+		switch(c){
+			case '=':
+			case ';':
+			case '#':
+			case '\\':
+			case '\n':
+				dest[j++] = '\\';
+			default:
+				dest[j++] = c;
+				break;
+		}
+	}
+	dest[j] = '\0';
+
+	return dest;
 }
