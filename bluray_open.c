@@ -149,7 +149,7 @@ int bluray_title_init(struct bluray *bd, struct bluray_title *bluray_title, uint
 char *escaped_strncpy(char *dest, const char *src, size_t n){
 	int i = 0, j = 0;
 	char c;
-	while(i<n && j<n && (c=src[i++])!='\0'){
+	while(i<n && (c=src[i++])!='\0'){
 		switch(c){
 			case '=':
 			case ';':
