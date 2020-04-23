@@ -55,6 +55,8 @@ struct bluray_title {
 	uint8_t video_streams;
 	uint8_t audio_streams;
 	uint8_t pg_streams;
+	uint8_t sec_audio_streams;
+	uint8_t sec_video_streams;
 	char length[BLURAY_INFO_TIME_STRLEN];
 	BLURAY_CLIP_INFO *clip_info;
 	BLURAY_TITLE_CHAPTER *title_chapters;

@@ -406,7 +406,7 @@ int main(int argc, char **argv) {
 				continue;
 			}
 
-			printf("Title: %03" PRIu32 ", Playlist: %04" PRIu32 ", Length: %s, Chapters: %03"PRIu32 ", Video streams: %02" PRIu8 ", Audio streams: %02" PRIu8 ", Subtitles: %02" PRIu8 ", Angles: %02" PRIu8 ", Filesize: %05.0lf MBs\n", bluray_title.number, bluray_title.playlist, bluray_title.length, bluray_title.chapters, bluray_title.video_streams, bluray_title.audio_streams, bluray_title.pg_streams, bluray_title.angles, bluray_title.size_mbs);
+			printf("Title: %03" PRIu32 ", Playlist: %04" PRIu32 ", Length: %s, Chapters: %03"PRIu32 ", Video streams: %02" PRIu8 ", Audio streams: %02" PRIu8 ", Subtitles: %02" PRIu8 ", Sec. audio streams: %02" PRIu8 ", Sec. video streams: %02" PRIu8 ", Angles: %02" PRIu8 ", Filesize: %05.0lf MBs\n", bluray_title.number, bluray_title.playlist, bluray_title.length, bluray_title.chapters, bluray_title.video_streams, bluray_title.audio_streams, bluray_title.pg_streams, bluray_title.sec_audio_streams, bluray_title.sec_video_streams, bluray_title.angles, bluray_title.size_mbs);
 			printf("	Clips sequence: ");
 			for(clip_ix = 0; clip_ix < bluray_title.clips-1; clip_ix++){
 				printf("%s, ", bluray_title.clip_info[clip_ix].clip_id);

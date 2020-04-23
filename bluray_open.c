@@ -102,6 +102,8 @@ int bluray_title_init(struct bluray *bd, struct bluray_title *bluray_title, uint
 	bluray_title->video_streams = 0;
 	bluray_title->audio_streams = 0;
 	bluray_title->pg_streams = 0;
+	bluray_title->sec_audio_streams = 0;
+	bluray_title->sec_video_streams = 0;
 	strcpy(bluray_title->length, "00:00:00.000");
 
 	int retval = 0;
@@ -137,6 +139,8 @@ int bluray_title_init(struct bluray *bd, struct bluray_title *bluray_title, uint
 		bluray_title->video_streams = bd_title->clips[0].video_stream_count;
 		bluray_title->audio_streams = bd_title->clips[0].audio_stream_count;
 		bluray_title->pg_streams = bd_title->clips[0].pg_stream_count;
+		bluray_title->sec_audio_streams = bd_title->clips[0].sec_audio_stream_count;
+		bluray_title->sec_video_streams = bd_title->clips[0].sec_video_stream_count;
 	}
 
 	bluray_title->clip_info = bd_title->clips;
