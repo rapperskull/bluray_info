@@ -448,7 +448,7 @@ int main(int argc, char **argv) {
 				bluray_video_aspect_ratio(bluray_video.aspect_ratio, bd_stream->aspect);
 
 				if(p_bluray_info && d_video) {
-					printf("	Video: %02u, Format: %s, Aspect ratio: %s, FPS: %.02f, Codec: %s\n", video_stream_number, bluray_video.format, bluray_video.aspect_ratio, bluray_video.framerate, bluray_video.codec);
+					printf("	Video: %02u, PID: %#04x, Format: %s, Aspect ratio: %s, FPS: %.02f, Codec: %s\n", video_stream_number, bd_stream->pid, bluray_video.format, bluray_video.aspect_ratio, bluray_video.framerate, bluray_video.codec);
 				}
 
 				if(p_bluray_json) {
@@ -497,7 +497,7 @@ int main(int argc, char **argv) {
 				bluray_audio_rate(bluray_audio.rate, bd_stream->rate);
 
 				if(p_bluray_info && d_audio) {
-					printf("	Audio: %02" PRIu8 ", Language: %s, Codec: %s, Format: %s, Rate: %s\n", audio_stream_number, bluray_audio.lang, bluray_audio.codec, bluray_audio.format, bluray_audio.rate);
+					printf("	Audio: %02" PRIu8 ", PID: %#04x, Language: %s, Codec: %s, Format: %s, Rate: %s\n", audio_stream_number, bd_stream->pid, bluray_audio.lang, bluray_audio.codec, bluray_audio.format, bluray_audio.rate);
 				}
 
 				if(p_bluray_json) {
@@ -542,7 +542,7 @@ int main(int argc, char **argv) {
 					continue;
 
 				if(p_bluray_info && d_subtitles) {
-					printf("	Subtitle: %02" PRIu8 ", Language: %s\n", pg_stream_number, bluray_pgs.lang);
+					printf("	Subtitle: %02" PRIu8 ", PID: %#04x, Language: %s\n", pg_stream_number, bd_stream->pid, bluray_pgs.lang);
 				}
 
 				if(p_bluray_json) {
