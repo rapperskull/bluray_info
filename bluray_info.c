@@ -617,7 +617,7 @@ int main(int argc, char **argv) {
 			for(audio_stream_ix = 0; audio_stream_ix < bluray_title.sec_audio_streams; audio_stream_ix++) {
 
 				audio_stream_number = audio_stream_ix + 1;
-				// bd_stream = &bd_title->clips[0].audio_streams[audio_stream_ix];
+				// bd_stream = &bd_title->clips[0].sec_audio_streams[audio_stream_ix];
 				bd_stream = &bluray_title.clip_info[0].sec_audio_streams[audio_stream_ix];
 
 				if(bd_stream == NULL)
