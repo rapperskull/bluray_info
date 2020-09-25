@@ -314,7 +314,7 @@ int main(int argc, char **argv) {
 
 	if(p_bluray_fmeta){
 		printf(";FFMETADATA1\n");
-		printf("title=%s\n", bluray_info.escaped_disc_name);
+		printf("TITLE=%s\n", bluray_info.escaped_disc_name);
 		printf("\n");
 	}
 
@@ -436,7 +436,7 @@ int main(int argc, char **argv) {
 			
 			if(p_bluray_fclips) {
 				for(clip_ix = 0; clip_ix < bluray_title.clips; clip_ix++){
-					printf("file BDMV/STREAM/%s.m2ts\n", bluray_title.clip_info[clip_ix].clip_id);
+					printf("file BDMV/STREAM/%s.m2ts\nduration %.6f\n", bluray_title.clip_info[clip_ix].clip_id, (double)(bluray_title.clip_info[clip_ix].out_time - bluray_title.clip_info[clip_ix].in_time) / 90000);
 				}
 			}
 
@@ -755,7 +755,7 @@ int main(int argc, char **argv) {
 						printf("TIMEBASE=1/90000\n");
 						printf("START=%" PRIu64 "\n", bluray_chapter.start);
 						printf("END=%" PRIu64 "\n", bluray_chapter.start+bluray_chapter.duration);
-						printf("title=Chapter %03" PRIu32 "\n", chapter_number);
+						printf("TITLE=Chapter %03" PRIu32 "\n", chapter_number);
 					}
 				}
 
