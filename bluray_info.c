@@ -44,7 +44,8 @@ int main(int argc, char **argv) {
 	bool p_bluray_info = true;
 	bool p_bluray_json = false;
 	bool p_bluray_xchap = false;
-	bool p_bluray_ffmpeg = false;
+	bool p_bluray_fmeta = false;
+	bool p_bluray_fclips = false;
 	bool d_title_number = false;
 	uint32_t arg_title_number = 0;
 	bool d_playlist_number = false;
@@ -67,7 +68,8 @@ int main(int argc, char **argv) {
 		{ "audio", no_argument, NULL, 'a' },
 		{ "chapters", no_argument, NULL, 'c' },
 		{ "xchap", no_argument, NULL, 'g' },
-		{ "ffmpeg", no_argument, NULL, 'f' },
+		{ "fmeta", no_argument, NULL, 'f' },
+		{ "fclips", no_argument, NULL, 'C' },
 		{ "help", no_argument, NULL, 'h' },
 		{ "json", no_argument, NULL, 'j' },
 		{ "keydb", required_argument, NULL, 'k' },
@@ -84,7 +86,7 @@ int main(int argc, char **argv) {
 		{ "version", no_argument, NULL, 'Z' },
 		{ 0, 0, 0, 0 }
 	};
-	while((g_opt = getopt_long(argc, argv, "acfghjk:mp:st:vxAE:M:SZ", p_long_opts, &g_ix)) != -1) {
+	while((g_opt = getopt_long(argc, argv, "acfghjk:mp:st:vxACE:M:SZ", p_long_opts, &g_ix)) != -1) {
 
 		switch(g_opt) {
 
@@ -112,7 +114,12 @@ int main(int argc, char **argv) {
 
 			case 'f':
 				p_bluray_info = false;
-				p_bluray_ffmpeg = true;
+				p_bluray_fmeta = true;
+				break;
+
+			case 'C':
+				p_bluray_info = false;
+				p_bluray_fclips = true;
 				break;
 
 			case 'H':
@@ -208,7 +215,8 @@ int main(int argc, char **argv) {
 				printf("\n");
 				printf("Other:\n");
 				printf("  -g, --xchap		   Display title's chapter format for mkvmerge\n");
-				printf("  -f, --ffmpeg		   Display metadata in ffmpeg format\n");
+				printf("  -f, --fmeta		   Display metadata in ffmpeg format\n");
+				printf("  -C, --fclips		   Display clips and streams in ffmpeg format\n");
 				printf("  -k, --keydb <filename>   Location to KEYDB.cfg (default: ~/.config/aacs/KEYDB.cfg)\n");
 				printf("  -h, --help		   This output\n");
 				printf("      --version		   Version information\n");
@@ -296,7 +304,7 @@ int main(int argc, char **argv) {
 		printf("Disc title: '%s', Volume name: '%s', Main title: %03" PRIu32 ", AACS: %s, BD-J: %s, BD+: %s, 3D content: %s\n", bluray_info.disc_name, bluray_info.udf_volume_id, main_title_number, (bluray_info.aacs ? "yes" : "no"), (bluray_info.bdj ? "yes" : "no"), (bluray_info.bdplus ? "yes": "no"), (bluray_info.content_exist_3D ? "yes" : "no"));
 	}
 
-	if(p_bluray_ffmpeg){
+	if(p_bluray_fmeta){
 		printf(";FFMETADATA1\n");
 		printf("title=%s\n", bluray_info.escaped_disc_name);
 		printf("\n");
@@ -402,19 +410,27 @@ int main(int argc, char **argv) {
 
 		bluray_highest_playlist = ((bluray_title.playlist > bluray_highest_playlist) ? bluray_title.playlist : bluray_highest_playlist);
 
-		if(p_bluray_info) {
+		if(p_bluray_info || p_bluray_fclips) {
 
 			if(!(bluray_title.seconds >= d_min_seconds && bluray_title.minutes >= d_min_minutes && bluray_title.audio_streams >= d_min_audio_streams && bluray_title.pg_streams >= d_min_pg_streams)) {
 				bd_stream = NULL;
 				continue;
 			}
 
-			printf("Title: %03" PRIu32 ", Playlist: %04" PRIu32 ", Length: %s, Chapters: %03"PRIu32 ", Video streams: %02" PRIu8 ", Audio streams: %02" PRIu8 ", Subtitles: %02" PRIu8 ", Sec. audio streams: %02" PRIu8 ", Sec. video streams: %02" PRIu8 ", Angles: %02" PRIu8 ", Filesize: %05.0lf MBs\n", bluray_title.number, bluray_title.playlist, bluray_title.length, bluray_title.chapters, bluray_title.video_streams, bluray_title.audio_streams, bluray_title.pg_streams, bluray_title.sec_audio_streams, bluray_title.sec_video_streams, bluray_title.angles, bluray_title.size_mbs);
-			printf("	Clips sequence: ");
-			for(clip_ix = 0; clip_ix < bluray_title.clips-1; clip_ix++){
-				printf("%s, ", bluray_title.clip_info[clip_ix].clip_id);
+			if(p_bluray_info) {
+				printf("Title: %03" PRIu32 ", Playlist: %04" PRIu32 ", Length: %s, Chapters: %03"PRIu32 ", Video streams: %02" PRIu8 ", Audio streams: %02" PRIu8 ", Subtitles: %02" PRIu8 ", Sec. audio streams: %02" PRIu8 ", Sec. video streams: %02" PRIu8 ", Angles: %02" PRIu8 ", Filesize: %05.0lf MBs\n", bluray_title.number, bluray_title.playlist, bluray_title.length, bluray_title.chapters, bluray_title.video_streams, bluray_title.audio_streams, bluray_title.pg_streams, bluray_title.sec_audio_streams, bluray_title.sec_video_streams, bluray_title.angles, bluray_title.size_mbs);
+				printf("	Clips sequence: ");
+				for(clip_ix = 0; clip_ix < bluray_title.clips-1; clip_ix++){
+					printf("%s, ", bluray_title.clip_info[clip_ix].clip_id);
+				}
+				printf("%s\n", bluray_title.clip_info[bluray_title.clips-1].clip_id);
 			}
-			printf("%s\n", bluray_title.clip_info[bluray_title.clips-1].clip_id);
+			
+			if(p_bluray_fclips) {
+				for(clip_ix = 0; clip_ix < bluray_title.clips; clip_ix++){
+					printf("file BDMV/STREAM/%s.m2ts\n", bluray_title.clip_info[clip_ix].clip_id);
+				}
+			}
 
 		}
 
@@ -436,7 +452,7 @@ int main(int argc, char **argv) {
 		}
 
 		// Blu-ray video streams
-		if((p_bluray_info && d_video) || p_bluray_json) {
+		if((p_bluray_info && d_video) || p_bluray_json || p_bluray_fclips) {
 
 			if(p_bluray_json)
 				printf("   \"video\": [\n");
@@ -475,6 +491,10 @@ int main(int argc, char **argv) {
 						printf("    }\n");
 				}
 
+				if(p_bluray_fclips){
+					printf("stream\nexact_stream_id %#04x\n", bd_stream->pid);
+				}
+
 			}
 
 			bd_stream = NULL;
@@ -485,7 +505,7 @@ int main(int argc, char **argv) {
 		}
 
 		// Blu-ray audio streams
-		if((p_bluray_info && d_audio) || p_bluray_json) {
+		if((p_bluray_info && d_audio) || p_bluray_json || p_bluray_fclips) {
 
 			if(p_bluray_json)
 				printf("   \"audio\": [\n");
@@ -524,6 +544,10 @@ int main(int argc, char **argv) {
 						printf("    }\n");
 				}
 
+				if(p_bluray_fclips){
+					printf("stream\nexact_stream_id %#04x\n", bd_stream->pid);
+				}
+
 			}
 
 			bd_stream = NULL;
@@ -534,7 +558,7 @@ int main(int argc, char **argv) {
 		}
 
 		// Blu-ray PGS streams
-		if((p_bluray_info && d_subtitles) || p_bluray_json) {
+		if((p_bluray_info && d_subtitles) || p_bluray_json || p_bluray_fclips) {
 
 			if(p_bluray_json)
 				printf("   \"subtitles\": [\n");
@@ -565,6 +589,10 @@ int main(int argc, char **argv) {
 						printf("    }\n");
 				}
 
+				if(p_bluray_fclips){
+					printf("stream\nexact_stream_id %#04x\n", bd_stream->pid);
+				}
+
 			}
 
 			bd_stream = NULL;
@@ -575,7 +603,7 @@ int main(int argc, char **argv) {
 		}
 
 		// Blu-ray chapters
-		if((p_bluray_info && d_chapters) || p_bluray_json || p_bluray_xchap || p_bluray_ffmpeg) {
+		if((p_bluray_info && d_chapters) || p_bluray_json || p_bluray_xchap || p_bluray_fmeta) {
 
 			if(p_bluray_json)
 				printf("   \"chapters\": [\n");
@@ -618,7 +646,7 @@ int main(int argc, char **argv) {
 						printf("CHAPTER%03" PRIu32 "=%s\n", chapter_number, bluray_chapter.start_time);
 						printf("CHAPTER%03" PRIu32 "NAME=Chapter %03" PRIu32 "\n", chapter_number, chapter_number);
 					}
-					if(p_bluray_ffmpeg) {
+					if(p_bluray_fmeta) {
 						printf("[CHAPTER]\n");
 						printf("TIMEBASE=1/90000\n");
 						printf("START=%" PRIu64 "\n", bluray_chapter.start);
