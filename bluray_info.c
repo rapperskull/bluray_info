@@ -53,6 +53,7 @@ int main(int argc, char **argv) {
 	bool d_main_title = false;
 	bool d_video = false;
 	bool d_audio = false;
+	bool d_dolby = false;
 	bool d_extra = false;
 	bool d_subtitles = false;
 	bool d_chapters = false;
@@ -79,6 +80,7 @@ int main(int argc, char **argv) {
 		{ "subtitles", no_argument, NULL, 's' },
 		{ "title", required_argument, NULL, 't' },
 		{ "video", no_argument, NULL, 'v' },
+		{ "dolby", no_argument, NULL, 'd' },
 		{ "extra", no_argument, NULL, 'e' },
 		{ "all", no_argument, NULL, 'x' },
 		{ "has-audio", no_argument, NULL, 'A' },
@@ -88,7 +90,7 @@ int main(int argc, char **argv) {
 		{ "version", no_argument, NULL, 'Z' },
 		{ 0, 0, 0, 0 }
 	};
-	while((g_opt = getopt_long(argc, argv, "acefghjk:mp:st:vxACE:M:SZ", p_long_opts, &g_ix)) != -1) {
+	while((g_opt = getopt_long(argc, argv, "acdefghjk:mp:st:vxACE:M:SZ", p_long_opts, &g_ix)) != -1) {
 
 		switch(g_opt) {
 
@@ -177,7 +179,11 @@ int main(int argc, char **argv) {
 			case 'v':
 				d_video = true;
 				break;
-			
+
+			case 'd':
+				d_dolby = true;
+				break;
+
 			case 'e':
 				d_extra = true;
 				break;
@@ -185,6 +191,7 @@ int main(int argc, char **argv) {
 			case 'x':
 				d_video = true;
 				d_audio = true;
+				d_dolby = true;
 				d_extra = true;
 				d_chapters = true;
 				d_subtitles = true;
@@ -212,6 +219,7 @@ int main(int argc, char **argv) {
 				printf("  -a, --audio              Display audio streams\n");
 				printf("  -s, --subtitles          Display subtitles\n");
 				printf("  -c, --chapters           Display chapters\n");
+				printf("  -d, --dolby              Display Dolby Vision Enhancement Layer streams\n");
 				printf("  -e, --extra              Display extra streams (i.e. secondary video/audio)\n");
 				printf("  -x, --all                Display all\n");
 				printf("\n");
@@ -426,14 +434,14 @@ int main(int argc, char **argv) {
 			}
 
 			if(p_bluray_info) {
-				printf("Title: %03" PRIu32 ", Playlist: %04" PRIu32 ", Length: %s, Chapters: %03"PRIu32 ", Video streams: %02" PRIu8 ", Audio streams: %02" PRIu8 ", Subtitles: %02" PRIu8 ", Sec. audio streams: %02" PRIu8 ", Sec. video streams: %02" PRIu8 ", Angles: %02" PRIu8 ", Filesize: %05.0lf MBs\n", bluray_title.number, bluray_title.playlist, bluray_title.length, bluray_title.chapters, bluray_title.video_streams, bluray_title.audio_streams, bluray_title.pg_streams, bluray_title.sec_audio_streams, bluray_title.sec_video_streams, bluray_title.angles, bluray_title.size_mbs);
+				printf("Title: %03" PRIu32 ", Playlist: %04" PRIu32 ", Length: %s, Chapters: %03"PRIu32 ", Video streams: %02" PRIu8 ", Audio streams: %02" PRIu8 ", Subtitles: %02" PRIu8 ", Sec. audio streams: %02" PRIu8 ", Sec. video streams: %02" PRIu8 ", DV Streams: %02" PRIu8 ", Angles: %02" PRIu8 ", Filesize: %05.0lf MBs\n", bluray_title.number, bluray_title.playlist, bluray_title.length, bluray_title.chapters, bluray_title.video_streams, bluray_title.audio_streams, bluray_title.pg_streams, bluray_title.sec_audio_streams, bluray_title.sec_video_streams, bluray_title.dv_streams, bluray_title.angles, bluray_title.size_mbs);
 				printf("	Clips sequence: ");
 				for(clip_ix = 0; clip_ix < bluray_title.clips-1; clip_ix++){
 					printf("%s, ", bluray_title.clip_info[clip_ix].clip_id);
 				}
 				printf("%s\n", bluray_title.clip_info[bluray_title.clips-1].clip_id);
 			}
-			
+
 			if(p_bluray_fclips) {
 				for(clip_ix = 0; clip_ix < bluray_title.clips; clip_ix++){
 					printf("file BDMV/STREAM/%s.m2ts\nduration %.6f\n", bluray_title.clip_info[clip_ix].clip_id, (double)(bluray_title.clip_info[clip_ix].out_time - bluray_title.clip_info[clip_ix].in_time) / 90000);
@@ -509,7 +517,55 @@ int main(int argc, char **argv) {
 
 			if(p_bluray_json)
 				printf("   ],\n");
-			
+
+			if(p_bluray_json)
+				printf("   \"dv_video\": [\n");
+
+			for(video_stream_ix = 0; video_stream_ix < bluray_title.dv_streams; video_stream_ix++) {
+
+				video_stream_number = video_stream_ix + 1;
+				// bd_stream = &bd_title->clips[0].dv_streams[video_stream_ix];
+				bd_stream = &bluray_title.clip_info[0].dv_streams[video_stream_ix];
+
+				if(bd_stream == NULL)
+					continue;
+
+				bluray_video_codec(bluray_video.codec, bd_stream->coding_type);
+				bluray_video_codec_name(bluray_video.codec_name, bd_stream->coding_type);
+				bluray_video_format(bluray_video.format, bd_stream->format);
+				bluray_video.framerate = bluray_video_framerate(bd_stream->rate);
+				bluray_video_aspect_ratio(bluray_video.aspect_ratio, bd_stream->aspect);
+
+				if(p_bluray_info && d_video && d_extra) {
+					printf("	Dolby Vision EL: %02u, PID: %#04x, Format: %s, Aspect ratio: %s, FPS: %.02f, Codec: %s\n", video_stream_number, bd_stream->pid, bluray_video.format, bluray_video.aspect_ratio, bluray_video.framerate, bluray_video.codec);
+				}
+
+				if(p_bluray_json) {
+					printf("    {\n");
+					printf("     \"track\": %" PRIu8 ",\n", video_stream_number);
+					printf("     \"stream\": \"0x%x\",\n", bd_stream->pid);
+					printf("     \"format\": \"%s\",\n", bluray_video.format);
+					printf("     \"aspect ratio\": \"%s\",\n", bluray_video.aspect_ratio);
+					printf("     \"framerate\": %.02f,\n", bluray_video.framerate);
+					printf("     \"codec\": \"%s\",\n", bluray_video.codec);
+					printf("     \"codec name\": \"%s\"\n", bluray_video.codec_name);
+					if(video_stream_number < bluray_title.dv_streams)
+						printf("    },\n");
+					else
+						printf("    }\n");
+				}
+
+				if(p_bluray_fclips){
+					printf("stream\nexact_stream_id %#04x\n", bd_stream->pid);
+				}
+
+			}
+
+			bd_stream = NULL;
+
+			if(p_bluray_json)
+				printf("   ],\n");
+
 			if(p_bluray_json)
 				printf("   \"sec_video\": [\n");
 
@@ -610,7 +666,7 @@ int main(int argc, char **argv) {
 
 			if(p_bluray_json)
 				printf("   ],\n");
-			
+
 			if(p_bluray_json)
 				printf("   \"sec_audio\": [\n");
 
