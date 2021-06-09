@@ -16,10 +16,13 @@ int bluray_info_init(struct bluray *bd, struct bluray_info *bluray_info) {
 
 	// Set Blu-ray disc name
 	memset(bluray_info->disc_name, '\0', BLURAY_INFO_DISC_NAME_STRLEN);
+	memset(bluray_info->escaped_disc_name, '\0', BLURAY_INFO_ESCAPED_DISC_NAME_STRLEN);
 	const struct meta_dl *bd_meta = NULL;
 	bd_meta = bd_get_meta(bd);
-	if(bd_meta != NULL)
+	if(bd_meta != NULL) {
 		strncpy(bluray_info->disc_name, bd_meta->di_name, BLURAY_INFO_DISC_NAME_STRLEN - 1);
+		escaped_strncpy(bluray_info->escaped_disc_name, bd_meta->di_name, BLURAY_INFO_DISC_NAME_STRLEN - 1);
+	}
 
 	// Use the UDF volume name as disc title; will only work if input file
 	// is an image or disc.
@@ -51,7 +54,7 @@ int bluray_info_init(struct bluray *bd, struct bluray_info *bluray_info) {
 	// libbluray indexes titles starting at 0, but for human-readable, bluray_info
 	// starts at 1. Playlists start at 0, because they are indexed as such on the
 	// filesystem.
-	bluray_info->titles = bd_get_titles(bd, TITLES_RELEVANT, 0);
+	bluray_info->titles = bd_get_titles(bd, TITLES_ALL, 0);
 	bluray_info->main_title = 0;
 
 	int bd_main_title = bd_get_main_title(bd);
@@ -99,6 +102,9 @@ int bluray_title_init(struct bluray *bd, struct bluray_title *bluray_title, uint
 	bluray_title->video_streams = 0;
 	bluray_title->audio_streams = 0;
 	bluray_title->pg_streams = 0;
+	bluray_title->sec_audio_streams = 0;
+	bluray_title->sec_video_streams = 0;
+	bluray_title->dv_streams = 0;
 	strcpy(bluray_title->length, "00:00:00.000");
 
 	int retval = 0;
@@ -134,6 +140,9 @@ int bluray_title_init(struct bluray *bd, struct bluray_title *bluray_title, uint
 		bluray_title->video_streams = bd_title->clips[0].video_stream_count;
 		bluray_title->audio_streams = bd_title->clips[0].audio_stream_count;
 		bluray_title->pg_streams = bd_title->clips[0].pg_stream_count;
+		bluray_title->sec_audio_streams = bd_title->clips[0].sec_audio_stream_count;
+		bluray_title->sec_video_streams = bd_title->clips[0].sec_video_stream_count;
+		bluray_title->dv_streams = bd_title->clips[0].dv_stream_count;
 	}
 
 	bluray_title->clip_info = bd_title->clips;
@@ -141,4 +150,25 @@ int bluray_title_init(struct bluray *bd, struct bluray_title *bluray_title, uint
 
 	return 0;
 
+}
+
+char *escaped_strncpy(char *dest, const char *src, size_t n){
+	int i = 0, j = 0;
+	char c;
+	while(i<n && (c=src[i++])!='\0'){
+		switch(c){
+			case '=':
+			case ';':
+			case '#':
+			case '\\':
+			case '\n':
+				dest[j++] = '\\';
+			default:
+				dest[j++] = c;
+				break;
+		}
+	}
+	dest[j] = '\0';
+
+	return dest;
 }

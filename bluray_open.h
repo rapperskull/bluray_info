@@ -14,6 +14,7 @@
 #define BLURAY_INFO_UDF_VOLUME_ID_STRLEN 33
 #define BLURAY_INFO_PROVIDER_DATA_STRLEN 33
 #define BLURAY_INFO_DISC_NAME_STRLEN 256
+#define BLURAY_INFO_ESCAPED_DISC_NAME_STRLEN 511	// 2*255+1
 
 // Time format: 00:00:00.000
 #define BLURAY_INFO_TIME_STRLEN 13
@@ -36,6 +37,7 @@ struct bluray_info {
 	bool content_exist_3D;
 	char provider_data[BLURAY_INFO_PROVIDER_DATA_STRLEN];
 	char initial_output_mode_preference[3];
+	char escaped_disc_name[BLURAY_INFO_ESCAPED_DISC_NAME_STRLEN];
 };
 
 struct bluray_title {
@@ -53,6 +55,9 @@ struct bluray_title {
 	uint8_t video_streams;
 	uint8_t audio_streams;
 	uint8_t pg_streams;
+	uint8_t sec_audio_streams;
+	uint8_t sec_video_streams;
+	uint8_t dv_streams;
 	char length[BLURAY_INFO_TIME_STRLEN];
 	BLURAY_CLIP_INFO *clip_info;
 	BLURAY_TITLE_CHAPTER *title_chapters;
@@ -71,5 +76,7 @@ struct bluray_chapter {
 int bluray_info_init(struct bluray *bd, struct bluray_info *bluray_info);
 
 int bluray_title_init(struct bluray *bd, struct bluray_title *bluray_title, uint32_t title_ix, uint8_t angle_ix);
+
+char *escaped_strncpy(char *dest, const char *src, size_t n);
 
 #endif
